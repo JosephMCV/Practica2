@@ -12,7 +12,7 @@ database = MySQLDatabase(
 )
 
 class Camera(Model):
-    
+    id = AutoField(primary_key = True)
     cameraModel = CharField(max_length=50)
     resolution = CharField(max_length=20)
     pixels = IntegerField()
@@ -25,7 +25,6 @@ class Camera(Model):
 
 class Cellphone_model(Model):
     imei = IntegerField(primary_key = True)
-    camera = ForeignKeyField(Camera,backref='cellphones')
     color = CharField(max_length=50)
     brand = CharField(max_length=50)
     model = CharField(max_length=50)
@@ -42,6 +41,7 @@ class Cellphone_model(Model):
 class Author(Model):
     id = AutoField(primary_key = True)
     name = CharField(max_length=50)
+    
 
     class Meta:
         database = database
@@ -50,7 +50,6 @@ class Author(Model):
 class Book_model(Model):
     id = AutoField(primary_key = True)
     title = CharField(max_length=20)
-    author = ForeignKeyField(Author,backref='books')
     publisher = CharField(max_length=20)
     isbn= CharField(max_length=10)
     publicationYear = IntegerField()
@@ -65,5 +64,18 @@ class Book_model(Model):
         database = database
         table_name = "book"
 
+class Author_Book(Model):
+    author = ForeignKeyField(Author,backref="books")
+    book = ForeignKeyField(Book_model, backref="authors")
 
+    class Meta:
+        database = database
+        table_name = "author_book"
 
+class Camera_Cellphone(Model):
+    camera = ForeignKeyField(Camera,backref="cellphones")
+    cellphone = ForeignKeyField(Cellphone_model,backref="cameras")
+    
+    class Meta:
+        database = database
+        table_name = "camera_cellphone"

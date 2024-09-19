@@ -1,13 +1,16 @@
+from typing import List
 from pydantic import BaseModel,StrictStr,validator
 
 class Author(BaseModel):
+    id:int
     name:str
+    
 
 class Book_model(BaseModel):
     
     id:int
     title:str
-    author:Author
+    author:List[int]
     publisher: str
     isbn: str
     publicationYear: int

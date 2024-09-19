@@ -1,6 +1,8 @@
+from typing import List
 from pydantic import BaseModel,Field,validator
 
 class Camera(BaseModel):
+    id: int
     cameraModel:str
     resolution:str
     pixels:int
@@ -11,7 +13,7 @@ class Cellphone_model(BaseModel):
     
     imei:int 
     color:str
-    camera:Camera
+    camera:List[int]
     brand:str
     model:str
     port_type:str
@@ -19,14 +21,14 @@ class Cellphone_model(BaseModel):
     ram:int
     price:int
 
-    @validator("model")
-    def model_must_be_above_8(cls,v):
-        if v < "8":
-            raise ValueError("Cellphone version must be above 8")
+    @validator("price")
+    def minimun_of_ram(cls,v):
+        if v <= 0:
+            raise ValueError("The price cant be 0 or below")
         return v
     
     @validator("ram")
     def minimun_of_ram(cls,v):
-        if v >= 3:
+        if v <= 3:
             raise ValueError("Ram must be 3 or superior in order for start the software")
         return v

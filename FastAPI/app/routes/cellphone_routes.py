@@ -1,17 +1,14 @@
 from fastapi import APIRouter, Body
-from models.cellphone_schema import Cellphone_model as CellphoneSchema
-from database import Cellphone_model,Camera
+from models.cellphone_schema import Cellphone_model  as CellphoneSchema
+from database import Cellphone_model,Camera_Cellphone
 
 cellphone_route = APIRouter()
 
-@cellphone_route.post("/", response_model=CellphoneSchema)
+@cellphone_route.post("/")
 def create_cellphone(cellphone: CellphoneSchema = Body(...)):
-    camera_db = Camera.get_or_none(Camera.cameraModel == cellphone.camera.cameraModel)
-    if camera_db is None:
-        camera_db = Camera.create(cameraModel=cellphone.camera.cameraModel)
-        camera_db = Cellphone_model.create(imei=cellphone.imei,
+   
+    Cellphone_model.create(imei=cellphone.imei,
                                 color=cellphone.color,
-                                camera = camera_db.id,
                                 brand = cellphone.brand,
                                 model = cellphone.model,
                                 port_type = cellphone.port_type,
@@ -19,7 +16,12 @@ def create_cellphone(cellphone: CellphoneSchema = Body(...)):
                                 ram = cellphone.ram,
                                 price = cellphone.price
                                 )
-    return camera_db
+    for i in cellphone.camera:
+        Camera_Cellphone.create(
+            camera = i,
+            cellphone = cellphone.imei
+        )
+    return {"message": "cellphone created successfully"}
     
 @cellphone_route.get("/")
 def get_cellphone():

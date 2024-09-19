@@ -1,33 +1,31 @@
 from fastapi import APIRouter, Body, HTTPException
 from models.book_schema import Book_model as BookSchema
-from database import Book_model, Author
+from database import Book_model, Author,Author_Book
 
 book_route = APIRouter()
 
-@book_route.post("/", response_model=BookSchema)
+@book_route.post("/")
 def create_book(book: BookSchema = Body(...)):
 
-    # Intentar obtener el autor o crear uno nuevo
-    author_db = Author.get_or_none(Author.name == book.author.name)
-    if author_db is None:
-        author_db = Author.create(name=book.author.name)
-    
     # Crear el libro usando el ID del autor
-    
-        book_db = Book_model.create(
-            title=book.title,
-            author=author_db.id,  # Pasar el ID del autor
-            publisher=book.publisher,
-            isbn=book.isbn,
-            publicationYear=book.publicationYear,
-            genre=book.genre,
-            language=book.language,
-            pageCount=book.pageCount,
-            price=book.price,
-            format=book.format,
-            edition=book.edition,
+    book_db = Book_model.create(
+        title=book.title,
+        publisher=book.publisher,
+        isbn=book.isbn,
+        publicationYear=book.publicationYear,
+        genre=book.genre,
+        language=book.language,
+        pageCount=book.pageCount,
+        price=book.price,
+        format=book.format,
+        edition=book.edition,
+    )
+    for i in book.author:
+        Author_Book.create(
+            author = i,
+            book = book_db.id
         )
-    return book_db
+    return {"message": "book created successfully"}
 
 @book_route.get("/")
 def get_book():
