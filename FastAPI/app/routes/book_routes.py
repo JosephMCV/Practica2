@@ -1,14 +1,15 @@
+"""Book routes for the FastAPI application."""
+
 from fastapi import APIRouter, Body, HTTPException
-from models.book_schema import Book_model as BookSchema
-from database import Book_model, Author,Author_Book
+from models.book_schema import BookModel as BookSchema
+from database import BookModel, AuthorBook
 
 book_route = APIRouter()
 
 @book_route.post("/")
 def create_book(book: BookSchema = Body(...)):
-
-    # Crear el libro usando el ID del autor
-    book_db = Book_model.create(
+    """Create a new book with the associated authors."""
+    book_db = BookModel.create(
         title=book.title,
         publisher=book.publisher,
         isbn=book.isbn,
@@ -17,33 +18,36 @@ def create_book(book: BookSchema = Body(...)):
         language=book.language,
         pageCount=book.pageCount,
         price=book.price,
-        format=book.format,
+        format=book.bookFormat,
         edition=book.edition,
     )
-    for i in book.author:
-        Author_Book.create(
-            author = i,
-            book = book_db.id
+    for author_id in book.author:
+        AuthorBook.create(
+            author=author_id,
+            book=book_db.id
         )
-    return {"message": "book created successfully"}
+    return {"message": "Book created successfully"}
 
 @book_route.get("/")
-def get_book():
-    books = Book_model.select().where(Book_model.id > 0).dicts()
+def get_books():
+    """Retrieve all books."""
+    books = BookModel.select().where(BookModel.id > 0).dicts()
     return list(books)
 
 @book_route.get("/{book_id}")
 def get_book(book_id: int):
+    """Retrieve a specific book by ID."""
     try:
-        book = Book_model.get(Book_model.id == book_id)
+        book = BookModel.get(BookModel.id == book_id)
         return book
-    except Book_model.DoesNotExist:
-        raise HTTPException(status_code=404, detail="Book does not exist")
+    except BookModel.DoesNotExist as exc:
+        raise HTTPException(status_code=404, detail="Book does not exist") from exc
 
-@book_route.put("/{id}")
-def update_book(id: int, book: BookSchema = Body(...)):
+@book_route.put("/{book_id}")
+def update_book(book_id: int, book: BookSchema = Body(...)):
+    """Update an existing book."""
     try:
-        book_update = Book_model.get(Book_model.id == id)
+        book_update = BookModel.get(BookModel.id == book_id)
         book_update.title = book.title
         book_update.author = book.author
         book_update.publisher = book.publisher
@@ -53,18 +57,21 @@ def update_book(id: int, book: BookSchema = Body(...)):
         book_update.language = book.language
         book_update.pageCount = book.pageCount
         book_update.price = book.price
-        book_update.format = book.format
+        book_update.bookFormat = book.bookFormat
         book_update.edition = book.edition
         book_update.save()
-        return {"message": f"{id} updated"}
-    except Book_model.DoesNotExist:
-        raise HTTPException(status_code=404, detail="Failed to update")
+        return {"message": f"Book with ID {book_id} updated"}
+    except BookModel.DoesNotExist as exc:
+        raise HTTPException(status_code=404, detail="Failed to update") from exc
 
-@book_route.delete("/{id}")
-def delete_book(id: int):
+@book_route.delete("/{book_id}")
+def delete_book(book_id: int):
+    """Delete a book by ID."""
     try:
-        book = Book_model.get(Book_model.id == id)
+        bookauthor = AuthorBook.get(AuthorBook.book == book_id)
+        bookauthor.delete.instance()
+        book = BookModel.get(BookModel.id == book_id)
         book.delete_instance()
-        return {"message": f"{id} deleted"}
-    except Book_model.DoesNotExist:
-        raise HTTPException(status_code=404, detail="Book not found")
+        return {"message": f"Book with ID {book_id} deleted"}
+    except BookModel.DoesNotExist as exc:
+        raise HTTPException(status_code=404, detail="Book not found") from exc

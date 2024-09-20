@@ -1,63 +1,73 @@
-from fastapi import APIRouter, Body
-from models.cellphone_schema import Cellphone_model  as CellphoneSchema
-from database import Cellphone_model,Camera_Cellphone
+"""Cellphone routes for the FastAPI application."""
+
+from fastapi import APIRouter, Body, HTTPException
+from models.cellphone_schema import CellphoneModel as CellphoneSchema
+from database import CellphoneModel, CameraCellphone
 
 cellphone_route = APIRouter()
 
 @cellphone_route.post("/")
 def create_cellphone(cellphone: CellphoneSchema = Body(...)):
-   
-    Cellphone_model.create(imei=cellphone.imei,
-                                color=cellphone.color,
-                                brand = cellphone.brand,
-                                model = cellphone.model,
-                                port_type = cellphone.port_type,
-                                system_storage = cellphone.system_storage,
-                                ram = cellphone.ram,
-                                price = cellphone.price
-                                )
-    for i in cellphone.camera:
-        Camera_Cellphone.create(
-            camera = i,
-            cellphone = cellphone.imei
+    """Create a new cellphone."""
+    CellphoneModel.create(
+        imei=cellphone.imei,
+        color=cellphone.color,
+        brand=cellphone.brand,
+        model=cellphone.model,
+        portType=cellphone.portType,
+        systemStorage=cellphone.systemStorage,
+        ram=cellphone.ram,
+        price=cellphone.price
+    )
+    for camera in cellphone.camera:
+        CameraCellphone.create(
+            camera=camera,
+            cellphone=cellphone.imei
         )
-    return {"message": "cellphone created successfully"}
-    
+    return {"message": "Cellphone created successfully"}
+
 @cellphone_route.get("/")
-def get_cellphone():
-    cellphone = Cellphone_model.select().where(Cellphone_model.imei > 0).dicts()
-    return list(cellphone)
+def get_cellphones():
+    """Retrieve all cellphones."""
+    cellphones = CellphoneModel.select().where(CellphoneModel.imei > 0).dicts()
+    return list(cellphones)
 
 @cellphone_route.get("/{cellphone_imei}")
 def get_cellphone(cellphone_imei: int):
+    """Retrieve a specific cellphone by IMEI."""
     try:
-        cellphone = Cellphone_model.get(Cellphone_model.imei == cellphone_imei)
+        cellphone = CellphoneModel.get(CellphoneModel.imei == cellphone_imei)
         return cellphone
-    except Cellphone_model.DoesNotExist:
-        return {"error": "Cellphone doesn´t exist"}
-    
-@cellphone_route.put("/{imei}")
-def update_cellphone(imei: int, cellphone: CellphoneSchema = Body(...)):
+    except CellphoneModel.DoesNotExist as exc:
+        raise HTTPException(status_code=404, detail="Cellphone doesn't exist") from exc
+
+@cellphone_route.put("/{cellphone_imei}")
+def update_cellphone(cellphone_imei: int, cellphone: CellphoneSchema = Body(...)):
+    """Update an existing cellphone."""
     try:
-        cellphone_update = Cellphone_model.get(Cellphone_model.id == id)
+        cellphone_update = CellphoneModel.get(CellphoneModel.imei == cellphone_imei)
         cellphone_update.color = cellphone.color
         cellphone_update.camera = cellphone.camera
-        cellphone_update.brand= cellphone.brand
+        cellphone_update.brand = cellphone.brand
         cellphone_update.model = cellphone.model
-        cellphone_update.port_type = cellphone.port_type
-        cellphone_update.system_storage = cellphone.system_storage
+        cellphone_update.portType = cellphone.portType
+        cellphone_update.systemStorage = cellphone.systemStorage
         cellphone_update.ram = cellphone.ram
         cellphone_update.price = cellphone.price
-        cellphone_update.save() 
-        return {"message": "{imei} updated"}
-    except Cellphone_model.DoesNotExist:
-        return {"error": "Failed to update"}
+        cellphone_update.save()
+        return {"message": f"Cellphone with IMEI {cellphone_imei} updated"}
+    except CellphoneModel.DoesNotExist as exc:
+        raise HTTPException(status_code=404, detail="Failed to update") from exc
 
-@cellphone_route.delete("/{imei}")
-def delete_cellphone(imei: int):
+@cellphone_route.delete("/{cellphone_imei}")
+def delete_cellphone(cellphone_imei: int):
+    """Delete a cellphone by IMEI."""
     try:
-        cellphone = Cellphone_model.get(Cellphone_model.imei == imei)
+        cellphoneCamera = CameraCellphone.get(CameraCellphone.cellphone == cellphone_imei)
+        cellphoneCamera.delete_instance()
+        cellphone = CellphoneModel.get(CellphoneModel.imei == cellphone_imei)
         cellphone.delete_instance()
-        return {"message": f"{imei} eliminated"}
-    except Cellphone_model.DoesNotExist:
-        return {"error": "Cellphone not found"}
+        
+        return {"message": f"Cellphone with IMEI {cellphone_imei} deleted"}
+    except CellphoneModel.DoesNotExist as exc:
+        raise HTTPException(status_code=404, detail="Cellphone not found") from exc
