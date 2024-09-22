@@ -32,6 +32,7 @@ def get_cellphones():
     cellphones = CellphoneModel.select().where(CellphoneModel.imei > 0).dicts()
     return list(cellphones)
 
+# pylint: disable=no-member
 @cellphone_route.get("/{cellphone_imei}")
 def get_cellphone(cellphone_imei: int):
     """Retrieve a specific cellphone by IMEI."""
@@ -63,11 +64,11 @@ def update_cellphone(cellphone_imei: int, cellphone: CellphoneSchema = Body(...)
 def delete_cellphone(cellphone_imei: int):
     """Delete a cellphone by IMEI."""
     try:
-        cellphoneCamera = CameraCellphone.get(CameraCellphone.cellphone == cellphone_imei)
-        cellphoneCamera.delete_instance()
+        cellphone_camera = CameraCellphone.get(CameraCellphone.cellphone == cellphone_imei)
+        cellphone_camera.delete_instance()
         cellphone = CellphoneModel.get(CellphoneModel.imei == cellphone_imei)
         cellphone.delete_instance()
-        
+
         return {"message": f"Cellphone with IMEI {cellphone_imei} deleted"}
     except CellphoneModel.DoesNotExist as exc:
         raise HTTPException(status_code=404, detail="Cellphone not found") from exc

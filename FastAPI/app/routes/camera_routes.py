@@ -25,6 +25,7 @@ def get_cameras():
     cameras = Camera.select().where(Camera.id > 0).dicts()
     return list(cameras)
 
+# pylint: disable=no-member
 @camera_route.get("/{camera_id}")
 def get_camera(camera_id: int):
     """Retrieve a specific camera by ID."""
@@ -54,10 +55,11 @@ def update_camera(camera_id: int, camera: CameraSchema = Body(...)):
 def delete_camera(camera_id: int):
     """Delete a camera by ID."""
     try:
-        cellphoneCamera = CameraCellphone.get(CameraCellphone.camera == camera_id)
-        cellphoneCamera.delete_instance()
+        cellphone_camera = CameraCellphone.get(CameraCellphone.camera == camera_id)
+        cellphone_camera.delete_instance()
         camera = Camera.get(Camera.id == camera_id)
         camera.delete_instance()
         return {"message": f"Camera with ID {camera_id} deleted"}
     except Camera.DoesNotExist as exc:
         raise HTTPException(status_code=404, detail="Camera not found") from exc
+    

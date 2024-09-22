@@ -34,6 +34,7 @@ def get_books():
     books = BookModel.select().where(BookModel.id > 0).dicts()
     return list(books)
 
+# pylint: disable=no-member
 @book_route.get("/{book_id}")
 def get_book(book_id: int):
     """Retrieve a specific book by ID."""
@@ -68,10 +69,11 @@ def update_book(book_id: int, book: BookSchema = Body(...)):
 def delete_book(book_id: int):
     """Delete a book by ID."""
     try:
-        bookauthor = AuthorBook.get(AuthorBook.book == book_id)
-        bookauthor.delete.instance()
+        book_author = AuthorBook.get(AuthorBook.book == book_id)
+        book_author.delete.instance()
         book = BookModel.get(BookModel.id == book_id)
         book.delete_instance()
         return {"message": f"Book with ID {book_id} deleted"}
     except BookModel.DoesNotExist as exc:
         raise HTTPException(status_code=404, detail="Book not found") from exc
+    

@@ -97,3 +97,4 @@ class CameraCellphone(Model):
         """Class defining properties of the CameraCellphone model."""
         database = database
         table_name = "camera_cellphone"
+        

@@ -1,6 +1,5 @@
 .git
 .gitignore
-.env
 venv
 Dockerfile
 docker-compose.yml

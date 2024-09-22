@@ -18,6 +18,7 @@ def get_authors():
     authors = Author.select().where(Author.id > 0).dicts()
     return list(authors)
 
+# pylint: disable=no-member
 @author_router.get("/{author_id}")
 def get_author(author_id: int):
     """Retrieve a specific author by ID."""
@@ -33,7 +34,6 @@ def update_author(author_id: int, author: AuthorSchema = Body(...)):
     try:
         author_update = Author.get(Author.id == author_id)
         author_update.name = author.name
-        author_update.author = author.book
         author_update.save()
         return {"message": f"Author with ID {author_id} updated"}
     except Author.DoesNotExist as exc:
@@ -43,10 +43,11 @@ def update_author(author_id: int, author: AuthorSchema = Body(...)):
 def delete_author(author_id: int):
     """Delete an author by ID."""
     try:
-        bookauthor = AuthorBook.get(AuthorBook.book == author_id)
-        bookauthor.delete.instance()
+        book_author = AuthorBook.get(AuthorBook.book == author_id)
+        book_author.delete.instance()
         author = Author.get(Author.id == author_id)
         author.delete_instance()
         return {"message": f"Author with ID {author_id} deleted"}
     except Author.DoesNotExist as exc:
         raise HTTPException(status_code=404, detail="Author not found") from exc
+    

@@ -7,7 +7,8 @@ and table creation, and includes the route definitions.
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from database import database as connection, Camera, CellphoneModel, Author, BookModel,CameraCellphone,AuthorBook
+from database import (database as connection, Camera, CellphoneModel, Author,
+                        BookModel,CameraCellphone,AuthorBook)
 from routes.book_routes import book_route
 from routes.cellphone_routes import cellphone_route
 from routes.camera_routes import camera_route
